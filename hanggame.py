@@ -3,8 +3,11 @@ from sys import exit
 import random
 import time
 import os
+
+# Seed random
 random.seed(time.time())
 
+# Set level entry point
 START_POINT0 = 0
 START_POINT1 = 3
 
@@ -49,13 +52,14 @@ def create_letter_list_for_print(letter_list) -> str:
 
 
 def print_stage(current_answer_list, letter_list, current_stage_number, number_of_guess) -> None:
+    '''Print stage to screen'''
     def letter_to_text(letter):
         if letter:
             return " "+letter+" "
         return "   "
 
     try:
-        with open("stage{0}.txt".format(current_stage_number), 'r') as f:
+        with open("files\\stage{0}.txt".format(current_stage_number), 'r') as f:
             stage = f.read()
     except Exception:
         print("Error! could not open stage file number", current_stage_number)
@@ -82,8 +86,9 @@ def print_stage(current_answer_list, letter_list, current_stage_number, number_o
 
 
 def print_win_message():
+    '''Print win message using win.txt'''
     try:
-        with open("win.txt", 'r') as f:
+        with open("files\\win.txt", 'r') as f:
             print(f.read())
     except Exception:
         print("Error! could not open win file")
@@ -91,13 +96,15 @@ def print_win_message():
 
 
 def get_word() -> str:
-    with open('words.txt') as f:
+    '''Get random word from words.txt'''
+    with open('files\\words.txt') as f:
         words_list = f.readlines()
     word_index = random.randint(0, len(words_list)-1)
     return words_list[word_index][:-1]
 
 
 def check_is_win(word, letter_list) -> bool:
+    '''Check if guess all letter in word'''
     for letter in word:
         if letter not in letter_list:
             return False
@@ -105,6 +112,11 @@ def check_is_win(word, letter_list) -> bool:
 
 
 def create_printable_mask_list(word, letter_list) -> list:
+    '''Create printable mask of word for printing
+    \nExample:
+    \n\tword = 'hello', letters = ['l','h']
+    \n=> ['h', None, 'l', 'l', None]
+    '''
     mask = []
     for letter in word:
         if letter in letter_list:
@@ -115,6 +127,7 @@ def create_printable_mask_list(word, letter_list) -> list:
 
 
 def clear_screen() -> None:
+    '''Clear screen'''
     if os.name == 'posix':  # linux\mac
         os.system('clear')
     else:  # window
@@ -122,8 +135,9 @@ def clear_screen() -> None:
 
 
 def print_loss_message() -> None:
+    '''Print loss message using loss.txt'''
     try:
-        with open("loss.txt", 'r') as f:
+        with open("files\\loss.txt", 'r') as f:
             print(f.read())
     except Exception:
         print("Error! could not open loss file")
@@ -131,6 +145,7 @@ def print_loss_message() -> None:
 
 
 def play(start_level):
+    '''Handle the game'''
     word = get_word()
     letter_used = []
     number_of_step = 0
