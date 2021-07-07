@@ -1,4 +1,9 @@
+# Auther: Noam Ben Shlomo(bom2013)
 from sys import exit
+import random
+import time
+import os
+random.seed(time.time())
 
 START_POINT0 = 0
 START_POINT1 = 3
@@ -15,7 +20,7 @@ def get_extended_stage(stage_string, text_snippet_list) -> str:
 
 
 def add_text_snippet(stage_string, text_snippet) -> str:
-    """Insert the text snippet to the stage string"""
+    """Insert the text snippet to string"""
     text, line, offset = text_snippet
     text_lines = stage_string.splitlines()
     changed_line = text_lines[line]
@@ -43,7 +48,7 @@ def create_letter_list_for_print(letter_list) -> str:
     return res
 
 
-def print_stage(current_answer_list, letter_list, current_stage_number) -> None:
+def print_stage(current_answer_list, letter_list, current_stage_number, number_of_guess) -> None:
     def letter_to_text(letter):
         if letter:
             return " "+letter+" "
@@ -64,19 +69,111 @@ def print_stage(current_answer_list, letter_list, current_stage_number) -> None:
         (" ".join(['---' for i in range(len(current_answer_list))]), 4, 1),
         # Number of guess
         ("Number of guess: "+str(current_stage_number), 6, 1),
+        # Number of guess left
+        ("Number of guess left: "+str(13-current_stage_number), 7, 1),
         # Used Letter
-        ("Used letter:", 7, 1)
+        ("Used letter:", 8, 1)
     ]
-    letter_line_index = 8
+    letter_line_index = 9
     for letter_line in create_letter_list_for_print(letter_list).splitlines():
         text_snippet_list.append((letter_line, letter_line_index, 1))
         letter_line_index += 1
     print(insert_texts_into_stage(stage, text_snippet_list))
 
 
+def print_win_message():
+    try:
+        with open("win.txt", 'r') as f:
+            print(f.read())
+    except Exception:
+        print("Error! could not open win file")
+        exit(-1)
+
+
+def get_word() -> str:
+    with open('words.txt') as f:
+        words_list = f.readlines()
+    word_index = random.randint(0, len(words_list)-1)
+    return words_list[word_index][:-1]
+
+
+def check_is_win(word, letter_list) -> bool:
+    for letter in word:
+        if letter not in letter_list:
+            return False
+    return True
+
+
+def create_printable_mask_list(word, letter_list) -> list:
+    mask = []
+    for letter in word:
+        if letter in letter_list:
+            mask.append(letter)
+        else:
+            mask.append(None)
+    return mask
+
+
+def clear_screen() -> None:
+    if os.name == 'posix':  # linux\mac
+        os.system('clear')
+    else:  # window
+        os.system('cls')
+
+
+def print_loss_message() -> None:
+    try:
+        with open("loss.txt", 'r') as f:
+            print(f.read())
+    except Exception:
+        print("Error! could not open loss file")
+        exit(-1)
+
+
+def play(start_level):
+    word = get_word()
+    letter_used = []
+    number_of_step = 0
+    current_level = start_level
+    while True:
+        clear_screen()
+        # Check if user guess all word
+        if check_is_win(word, letter_used):
+            print_win_message()
+            exit()
+        # Check if reach all levels
+        elif current_level > 12:
+            print_loss_message()
+            exit()
+        else:
+            print_stage(create_printable_mask_list(word, letter_used),
+                        letter_used,
+                        current_level,
+                        number_of_step)
+            new_letter = input("Enter letter: ")[0]
+            if new_letter in word:
+                if new_letter in letter_used:
+                    print("You already used this letter")
+                else:
+                    print("Nice guess!")
+            else:
+                print("Wrong guess! I'm getting closer to hanging ...")
+                current_level += 1
+            letter_used.append(new_letter)
+            number_of_step += 1
+            time.sleep(0.6)
+
+
 def main():
-    print_stage(['A', None, 'B'], ['a', 'b', 'c',
-                                   'd', 'f', 'f', 'g', 'g', 'f'], 9)
+    while True:
+        print("-"*10)
+        print("1. easy")
+        print("2. hard")
+        print("*. exit")
+        res = input()
+        if res not in '12':
+            exit()
+        play(START_POINT0 if res == '1' else START_POINT1)
 
 
 if __name__ == "__main__":
